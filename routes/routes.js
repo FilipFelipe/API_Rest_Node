@@ -6,7 +6,10 @@ var UserController = require("../controllers/UserController");
 
 router.get('/', HomeController.index);
 router.post('/users',UserController.create);
-router.get('/users', UserController.index);
+router.get('/users', UserController.findAll);
 router.get('/users/:ID', UserController.buscarId);
-router.get('/users/email/:Email', UserController.buscarEmail);
+router.get('/email/:Email', UserController.buscarEmail);
+router.put('/users',UserController.edit);
+router.delete('/users/:ID',UserController.remove);
+
 module.exports = router;
