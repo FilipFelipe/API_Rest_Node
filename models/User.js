@@ -1,9 +1,9 @@
-var knex = require("../database/connection");
 var bcrypt = require("bcrypt");
 const { response } = require("express");
+const PasswordToken = require("./PasswordToken");
+var knex = require("../database/connection");
 
 class User {
-
     async new(Email, Password, Nome) {
         try {
             var hash = await bcrypt.hash(Password, 10);
@@ -50,7 +50,7 @@ class User {
     }
     async findByEmail(Email) {
         try {
-            var resultado = await knex.select(["ID", "Nome", "Email"]).table("Users").where({ Email: Email });
+            var resultado = await knex.select(["ID", "Nome","Password", "Email"]).table("Users").where({ Email: Email });
             if (resultado.length > 0) {
                 return resultado[0];
             }else{
@@ -109,5 +109,15 @@ class User {
             return{Status: false,err: "O usuário não existe no banco de dados!"};
         }
     }
+    async changePassword(newPassword,id,token){
+        try {
+            var hash = await bcrypt.hash(newPassword, 10);
+            await knex.update({ Password: hash }).where({ID: id}).table("Users");
+            await PasswordToken.setUsed(token);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
+
 module.exports = new User();

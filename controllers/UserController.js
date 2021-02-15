@@ -1,4 +1,9 @@
+var jwt = require("jsonwebtoken");
+var bcrypt = require("bcrypt");
 const User = require("../models/User");
+const PasswordToken = require("../models/PasswordToken");
+
+var secret = "6yx8q[[Z_WV7wh]F4:)q/8tgG4sThQx5Af";
 
 class UserController {
     async findAll(req, res) {
@@ -61,9 +66,9 @@ class UserController {
             res.send("Error no servidor");
         }
     }
-    async remove(req,res){
+    async remove(req, res) {
         var id = req.params.ID;
-        var resultado  = await User.delete(id);
+        var resultado = await User.delete(id);
         if (resultado != undefined) {
             if (resultado.Status) {
                 res.send("Removido com sucesso");
@@ -77,6 +82,44 @@ class UserController {
             res.send("Error no servidor");
         }
 
+    }
+    async gerarToken(req, res) {
+        var Email = req.body.Email;
+        var resultado = await PasswordToken.create(Email);
+        if (resultado.Status) {
+            console.log(resultado.token);
+            res.status(200);
+            res.send("" + resultado.token);
+        } else {
+            res.status(406);
+            res.send(resultado.err);
+        }
+    }
+    async changePassword(req, res) {
+        var token = req.body.token;
+        var Password = req.body.Password;
+        var isTokenValid = await PasswordToken.validate(token);
+        if (isTokenValid.Status) {
+            await User.changePassword(Password, isTokenValid.token.user_id, isTokenValid.token.token);
+            res.status(200);
+            res.send("Senha alterado com sucesso!")
+        } else {
+            res.status(406);
+            res.send("Token inválido!");
+        }
+    }
+
+    async login(req, res) {
+        var { Email, Password } = req.body;
+
+        var usuario = await User.findByEmail(Email);
+        if (usuario != undefined) {
+            //var resultado = await bcrypt.compare(Password, usuario.Password);
+            res.json({ "resultado": resultado });
+        } else {
+            res.status(404);
+            res.send("Usário Inválido");
+        }
     }
 
 }
