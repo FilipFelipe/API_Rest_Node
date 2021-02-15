@@ -1,7 +1,7 @@
 class HomeController{
 
     async index(req, res){
-        res.send("ds");
+        res.send("Projeto de API no Node.js");
     }
 
 }

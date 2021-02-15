@@ -1,6 +1,6 @@
 var bcrypt = require("bcrypt");
-const { response } = require("express");
-const PasswordToken = require("./PasswordToken");
+const express = require('express')
+
 var knex = require("../database/connection");
 
 class User {
@@ -39,10 +39,10 @@ class User {
             var resultado = await knex.select(["ID", "Nome", "Email"]).table("Users").where({ ID: ID });
             if (resultado.length > 0) {
                 return resultado[0];
-            }else{
+            } else {
                 return undefined;
             }
-            
+
         } catch (error) {
             console.log(error);
             return undefined;;
@@ -50,10 +50,10 @@ class User {
     }
     async findByEmail(Email) {
         try {
-            var resultado = await knex.select(["ID", "Nome","Password", "Email"]).table("Users").where({ Email: Email });
+            var resultado = await knex.select(["ID", "Nome", "Password", "Email","Role"]).table("Users").where({ Email: Email });
             if (resultado.length > 0) {
                 return resultado[0];
-            }else{
+            } else {
                 return undefined;
             }
         } catch (error) {
@@ -61,63 +61,56 @@ class User {
             return [];
         }
     }
-    async update(ID,Nome,Email,Role){
+    async update(ID, Nome, Email, Role) {
         var user = await this.findById(ID);
-        if (user != undefined){
-            var editUser ={};
-            if(Email != undefined){
-                if(Email !=user.Email){
+        if (user != undefined) {
+            var editUser = {};
+            if (Email != undefined) {
+                if (Email != user.Email) {
                     var result = await this.findEmail(Email);
-                    if(result == false){
+                    if (result == false) {
                         editUser.Email = Email;
                     }
-                    else{
-                        return{Status: false,err:"Email já cadastrado"}
+                    else {
+                        return { Status: false, err: "Email já cadastrado" }
                     }
                 }
             }
-            if (Nome != undefined){
+            if (Nome != undefined) {
                 editUser.Nome = Nome;
             }
-            if (Role != undefined){
+            if (Role != undefined) {
                 editUser.Role = Role;
             }
             try {
-                console.log("Alterando usuário");
-                await knex.update(editUser).where({ID: ID}).table("Users");
-                return {Status: true}
+               
+                await knex.update(editUser).where({ ID: ID }).table("Users");
+                return { Status: true }
             } catch (error) {
                 console.log(error);
-                console.log("Erro na alteração");
-                return{Status: false,err:error}
+                
+                return { Status: false, err: error }
             }
-            
-        }else{
-            return{Status: false,err:"O usuário não cadastrado"}
+
+        } else {
+            return { Status: false, err: "O usuário não cadastrado" }
         }
     }
-    async delete(ID){
+    async delete(ID) {
         var user = await this.findById(ID);
         if (user != undefined) {
             try {
-                await knex.delete().where({ID: ID}).table("Users");
-                return{Status: true};
+                await knex.delete().where({ ID: ID }).table("Users");
+                return { Status: true };
             } catch (error) {
-                return{Status: false,err: error};
+                return { Status: false, err: error };
             }
         } else {
-            return{Status: false,err: "O usuário não existe no banco de dados!"};
+            return { Status: false, err: "O usuário não existe no banco de dados!" };
         }
     }
-    async changePassword(newPassword,id,token){
-        try {
-            var hash = await bcrypt.hash(newPassword, 10);
-            await knex.update({ Password: hash }).where({ID: id}).table("Users");
-            await PasswordToken.setUsed(token);
-        } catch (error) {
-            console.log(error);
-        }
-    }
+   
+    
 }
 
 module.exports = new User();
