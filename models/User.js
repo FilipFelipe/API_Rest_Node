@@ -27,7 +27,7 @@ class User {
     }
     async findAll() {
         try {
-            var resultado = await knex.select(["ID", "Nome", "Email"]).table("Users");
+            var resultado = await knex.select(["ID", "Nome", "Email","Role"]).table("Users");
             return resultado;
         } catch (error) {
             console.log(error);
@@ -36,7 +36,7 @@ class User {
     }
     async findById(ID) {
         try {
-            var resultado = await knex.select(["ID", "Nome", "Email"]).table("Users").where({ ID: ID });
+            var resultado = await knex.select(["ID", "Nome", "Role","Email"]).table("Users").where({ ID: ID });
             if (resultado.length > 0) {
                 return resultado[0];
             } else {
@@ -50,7 +50,7 @@ class User {
     }
     async findByEmail(Email) {
         try {
-            var resultado = await knex.select(["ID", "Nome", "Password", "Email","Role"]).table("Users").where({ Email: Email });
+            var resultado = await knex.select(["ID", "Nome", "Email","Password","Role"]).table("Users").where({ Email: Email });
             if (resultado.length > 0) {
                 return resultado[0];
             } else {

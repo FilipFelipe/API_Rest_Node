@@ -8,22 +8,25 @@ var secret = "6yx8q[[Z_WV7wh]F4:)q/8tgG4sThQx5Af"; // CHANGE
 class UserController {
     async findAll(req, res) {
         var usuarios = await UserM.findAll();
+
         res.json(usuarios);
     }
     async create(req, res) {
         var { Email, Nome, Password } = req.body;
-        if (Email == undefined) {
+        if (Email == undefined || Nome == undefined) {
             res.status(403);
-            res.json({ err: "Erro no E-mail" });
+            res.json({ err: "Erro na requisição! Dados ausentes!" });
             return;
         }
         var EmailExistente = await UserM.findEmail(Email);
         if (EmailExistente) {
             res.status(406);
+            
             res.json({ err: "E-mail já cadastrado!!" });
         }
         await UserM.new(Email, Password, Nome);
         res.status(200);
+        
         res.send("OK");
     }
     async buscarId(req, res) {
@@ -87,8 +90,9 @@ class UserController {
         var Email = req.body.Email;
         var resultado = await PasswordTokenM.createToken(Email);
         if (resultado.Status) {
-            
+
             res.status(200);
+            headers.set('x-access-token',resultado.token);
             res.send("Token: " + resultado.token);
         } else {
             res.status(406);
@@ -110,24 +114,31 @@ class UserController {
     }
     async login(req, res) {
         var { Email, Password } = req.body;
+        if (Email != undefined) {
+            var usuario = await UserM.findByEmail(Email);
+            console.log(usuario);
+            if (usuario != undefined) {
+                var resultado = await bcrypt.compare(Password, usuario.Password);
+                if (resultado) {
+                    var tokenJWT = jwt.sign({ Email: usuario.Email, Role: usuario.Role }, secret);
+                    var dados = await UserM.findById(usuario.ID);
+                    res.status(200);
+                    res.json({ "Token": tokenJWT ,"User": dados });
 
-        var usuario = await UserM.findByEmail(Email);
-        if (usuario != undefined) {
-            var resultado = await bcrypt.compare(Password, usuario.Password);
-            if (resultado) {
-                var tokenJWT = jwt.sign({ Email: usuario.Email, Role: usuario.Role }, secret);
-                res.status(200);
-                res.json({"Token": tokenJWT});
+                }
+                else {
+                    res.status(406);
+                    res.send("Senha inválida");
+                }
+            } else {
+                res.status(404);
+                res.send("E-mail não encontrado!");
             }
-            else {
-                res.status(406);
-                res.send("Senha inválida");
-            }
-            
         } else {
             res.status(404);
-            res.json({ "resultado": resultado });
+            res.send("Favor informar email!");
         }
+
     }
 
 

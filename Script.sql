@@ -26,3 +26,7 @@ CREATE TABLE `ps_token` (
 INSERT INTO api.users
 (Nome, Email, Password, `Role`)
 VALUES('admin', 'admin@admin.com', '$2b$10$PHypY2/hRYh1hcFUyKCkYOd8LplHkqr54ygW9ND/2T.QvDeiBV9gi', 1);
+
+
+
+
